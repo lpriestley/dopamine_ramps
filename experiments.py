@@ -23,42 +23,84 @@ __all__ = [
 # Demos
 # ------------------------------------------------------------
 
-def dual_process_demo(n_episodes: int = 100, n_states: int = 20,
-                      goal_state: int = 19, reward_value: float = 1.0) -> None:
+def dual_process_demo(n_states: int = 20, goal_state: int = 19,
+                      reward_value: float = 1.0, max_episodes: int = 10_000) -> None:
     """Demonstrate dual-process learning on a linear track.
-    
-    Trains a DualTab agent and plots learned value functions and RPEs.
+
+    Trains both DualTab and TDTab until learning converges (mean RPE rounded to
+    2 decimal places is 0), stores results separately, and plots value functions
+    (from dual-process) plus two RPE panels (dual-process and standard TD),
+    each with early/mid/late training lines.
     """
     env = Track(n_states=n_states, goal_state=goal_state, reward_value=reward_value)
-    agent = DualTab(
+    dual_agent = DualTab(
         n_states, n_actions=1, goal_state=goal_state, init_R=reward_value,
         alpha_mb=ALPHA_MB, alpha=ALPHA, gamma=0.85, k=K
     )
-    ep = TrackEpisode(env, agent)
+    td_agent = TDTab(n_states, n_actions=1, alpha=ALPHA, gamma=0.85)
+    dual_ep = TrackEpisode(env, dual_agent)
+    td_ep = TrackEpisode(env, td_agent)
 
-    exp_data = {
-        'episodes': [],
-    }
+    dual_episodes = []
+    td_episodes = []
 
-    for ep_n in range(n_episodes):
-        states, steps, actions, deltas, rewards = ep.run()
-        ep_data = {
+    def converged(deltas: np.ndarray) -> bool:
+        return round(float(np.mean(deltas)), 2) == 0
+
+    for ep_n in range(max_episodes):
+        states_d, steps_d, actions_d, deltas_d, rewards_d = dual_ep.run()
+        dual_episodes.append({
             'ep': ep_n,
-            'states': np.array(states),
-            'steps': np.array(steps),
-            'actions': np.array(actions),
-            'deltas': np.array(deltas),
-            'rewards': np.array(rewards),
-            'V_TD': np.array(agent.V_TD.copy()),
-            'V_MB': np.array(agent.V_MB.copy()),
-        }
-        exp_data['episodes'].append(ep_data)
+            'states': np.array(states_d),
+            'steps': np.array(steps_d),
+            'actions': np.array(actions_d),
+            'deltas': np.array(deltas_d),
+            'rewards': np.array(rewards_d),
+            'V_TD': np.array(dual_agent.V_TD.copy()),
+            'V_MB': np.array(dual_agent.V_MB.copy()),
+        })
+        if converged(dual_episodes[-1]['deltas']):
+            break
 
-    v_td = exp_data['episodes'][-1]['V_TD']
-    v_mb = exp_data['episodes'][-1]['V_MB']
-    rpe = exp_data['episodes'][-1]['deltas']
+    for ep_n in range(max_episodes):
+        states_t, steps_t, actions_t, deltas_t, rewards_t = td_ep.run()
+        td_episodes.append({
+            'ep': ep_n,
+            'states': np.array(states_t),
+            'steps': np.array(steps_t),
+            'actions': np.array(actions_t),
+            'deltas': np.array(deltas_t),
+            'rewards': np.array(rewards_t),
+            'V_TD': np.array(td_agent.V.copy()),
+        })
+        if converged(td_episodes[-1]['deltas']):
+            break
+
+
+    n_dual = len(dual_episodes)
+    n_td = len(td_episodes)
+    d_early = int(0.05 * (n_dual - 1)) if n_dual > 1 else 0
+    d_mid = n_dual // 2
+    d_late = int(0.85 * (n_dual - 1)) if n_dual > 1 else 0
+    t_early = int(0.05 * (n_td - 1)) if n_td > 1 else 0
+    t_mid = n_td // 2
+    t_late = int(0.85 * (n_td - 1)) if n_td > 1 else 0
+    plt.plot_demo_rpe(
+        dual_episodes[d_early]['deltas'],
+        dual_episodes[d_mid]['deltas'],
+        dual_episodes[d_late]['deltas'],
+        filename="figs/demo_dual_process_rpe.pdf",
+    )
+    plt.plot_demo_rpe(
+        td_episodes[t_early]['deltas'],
+        td_episodes[t_mid]['deltas'],
+        td_episodes[t_late]['deltas'],
+        filename="figs/demo_standard_td_rpe.pdf",
+    )
+
+    v_td = dual_episodes[d_early]['V_TD']
+    v_mb = dual_episodes[d_early]['V_MB']
     plt.plot_demo_v(v_td, v_mb)
-    plt.plot_demo_rpe(rpe)
 
 def compare_architectures(n_episodes: int = int(5e3), n_states: int = 10,
                           goal_state: int = 9, reward_value: float = 1.0) -> None:

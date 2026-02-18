@@ -7,12 +7,12 @@ import experiments as exp
 # Global random seed
 np.random.seed(18)
 
-RUN_DEMO = False
-RUN_COMPARE_ARCHITECTURES = False
-RUN_GURU = False
-RUN_KIM = True
-RUN_KRAUSZ = False
-RUN_MIKHAEL = True
+RUN_DEMO = True
+RUN_COMPARE_ARCHITECTURES = True
+RUN_GURU = True
+RUN_KIM = False
+RUN_KRAUSZ = True
+RUN_MIKHAEL = False
 
 if RUN_DEMO:
     exp.dual_process_demo()

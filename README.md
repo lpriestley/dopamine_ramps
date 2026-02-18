@@ -32,7 +32,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-Activate the virtual environment, then run experiments by editing the flags in `dopamine_ramps.py`:
+Activate the virtual environment, then run experiments by editing the flags in `main.py`:
 
 ```python
 RUN_DEMO = True              # Basic demonstration
@@ -47,7 +47,7 @@ Then execute:
 
 ```bash
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-python dopamine_ramps.py
+python main.py
 ```
 
 Figures are saved to the `figs/` directory.
@@ -62,7 +62,7 @@ dopamine_ramps/
 ├── experiments.py     # Simulations of published studies
 ├── plotting.py        # Visualisation functions
 ├── config.py          # Global hyperparameters
-├── dopamine_ramps.py  # Main entry point
+├── main.py            # Main entry point
 └── figs/              # Output figures
 ```
 

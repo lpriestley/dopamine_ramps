@@ -52,7 +52,6 @@ def preprocess_rpes(rpes, censor_final=True, scale_negative=True):
 def plot_demo_v(v_td, v_mb, save_fig=True, filename="figs/demo_v.pdf"):
     """Plot learned value functions (V_TD, V_MB, V_NET) across states (Fig. 1D)."""
     fig, ax = plt.subplots(figsize=(3.5, 3))
-    
     ax.plot(v_td[0:-1], color='black', linewidth=2, label='TD')
     ax.plot(v_mb[0:-1], color='red', linewidth=2, label='MB')
     ax.plot(K*v_mb[0:-1] + (1-K)*v_td[0:-1], color='darkred', linewidth=LINEWIDTH, linestyle='--', label='NET')
@@ -79,38 +78,49 @@ def plot_demo_v(v_td, v_mb, save_fig=True, filename="figs/demo_v.pdf"):
     if save_fig:
         plt.savefig(filename, format="pdf", bbox_inches="tight", pad_inches=0.1)
 
-def plot_demo_rpe(rpe, save_fig=True, filename="figs/demo_rpe.pdf"):
-    """Plot reward prediction errors across states (Fig. 1E)."""
-    fig, ax = plt.subplots(figsize=(3.5, 3))
-    
-    rpe = preprocess_rpes(rpe)
-    ax.plot(rpe, color='black', linewidth=LINEWIDTH)
-    ax.axvline(x=len(rpe)-1, color='red', linestyle=':', linewidth=1, alpha=1)
-
+def plot_demo_rpe(early_rpe, mid_rpe, late_rpe, save_fig=True, filename="figs/demo_standard_td_rpe.pdf"):
+    """Plot demo RPEs at early, mid, and late training (three lines, grayscale)."""
+    fig, ax = plt.subplots(figsize=(3, 3))
+    colors = ['0.55', '0.35', '0.15']
+    labels = ['Early', 'Mid', 'Late']
+    for rpe, color, label in zip([early_rpe, mid_rpe, late_rpe], colors, labels):
+        rpe = preprocess_rpes(rpe)
+        ax.plot(rpe, color=color, linewidth=LINEWIDTH, label=label)
+    ax.axvline(x=len(preprocess_rpes(early_rpe)) - 1, color='black', linestyle=':', linewidth=1, alpha=1)
     ax.set_xlabel("State", fontsize=FONT_SIZE_LABEL)
-    ax.set_xticks([0, len(rpe)-1])
+    ax.set_xticks([0, len(preprocess_rpes(early_rpe)) - 1])
     ax.set_xticklabels(['Start', 'Goal'], fontsize=FONT_SIZE_TICK)
-    ax.set_ylim(0, 0.5)
+    ax.set_ylim(-0.025, 0.38)
     ax.set_ylabel("RPE", fontsize=FONT_SIZE_LABEL)
-    ax.set_yticks([0, 0.25, 0.50])
-    ax.set_yticklabels([0, 0.25, 0.50], fontsize=FONT_SIZE_TICK)
-    
+    ax.set_yticks([0.0, 0.1, 0.2, 0.3])
+    ax.set_yticklabels(['0.0', '0.1', '0.2', '0.3'], fontsize=FONT_SIZE_TICK)
+    ax.legend(
+        title='Training-stage',
+        title_fontsize=FONT_SIZE_LEGEND,
+        loc='center left',
+        bbox_to_anchor=(0.0, 0.6),
+        fontsize=FONT_SIZE_LEGEND,
+        frameon=False,
+    )
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    
     for spine in ax.spines.values():
         spine.set_linewidth(SPINE_WIDTH)
-    
     plt.tight_layout()
-
     if save_fig:
         plt.savefig(filename, format="pdf", bbox_inches="tight", pad_inches=0.1)
 
+
 def plot_compare_architectures(exp_data, save_fig=True, filename="figs/compare_agents.pdf"):
     """Plot value error convergence for different agent architectures (Fig. 1C)."""
-    fig, ax = plt.subplots(figsize=(3.35, 3))
-    
-    colors = {'naive': 'darkred', 'normative': 'red', 'td': 'black'}
+    fig, ax = plt.subplots(figsize=(3.5, 3))
+
+    cmap = plt.colormaps['viridis']
+    colors = {
+        'naive': cmap(0.2),
+        'normative': cmap(0.5),
+        'td': cmap(0.8),
+    }
     n_states = exp_data['naive_episodes'][0]['states'].shape[0]
     states = np.arange(n_states)
     true_values = GAMMA ** (n_states - 1 - states)
@@ -139,8 +149,10 @@ def plot_compare_architectures(exp_data, save_fig=True, filename="figs/compare_a
         elif agent_type == 'td':
             label = 'Std.\nTD'
             
-        ax.plot(episodes_x, avg_differences, color=colors[agent_type], 
-                linewidth=2, label=label)
+        ax.plot(episodes_x, avg_differences,
+                color=colors[agent_type],
+                linewidth=2,
+                label=label)
     
     ax.set_xlabel("log(Trial) [N]", fontsize=FONT_SIZE_LABEL)
     ax.set_ylabel("Value error", fontsize=FONT_SIZE_LABEL)
@@ -278,7 +290,14 @@ def plot_guru_track_rpe_with_vmb(exp_data_subset, reward_vals=[2.0, 1.0], save_f
         
         v_mb_2d = v_mb.reshape(1, -1)
         
-        im = inset_ax.imshow(v_mb_2d, aspect='auto', cmap='Reds', vmin=0, vmax=2, interpolation='nearest')
+        im = inset_ax.imshow(
+            v_mb_2d,
+            aspect='auto',
+            cmap='Reds',
+            vmin=0,
+            vmax=2,
+            interpolation='nearest',
+        )
         
         n_states = len(v_mb)
         inset_ax.set_xticks([0, n_states - 1])
@@ -355,7 +374,7 @@ def plot_guru_v(v_td, v_mb, save_fig=True, filename="figs/demo_v.pdf"):
     ax.plot(v_td[0:-1], color='darkred', linewidth=LINEWIDTH, label='V$_{TD}$')
     ax.plot(v_mb[0:-1], color='pink', linewidth=LINEWIDTH, label='V$_{MB}$')
     ax.plot(K*v_mb[0:-1] + (1-K)*v_td[0:-1], color='black', linewidth=LINEWIDTH, linestyle = '--', label='V$_{NET}$')
-    ax.axvline(x=len(v_td)-2, color='red', linestyle=':', linewidth=1, alpha = 0.5)
+    ax.axvline(x=len(v_td)-2, color='black', linestyle=':', linewidth=1, alpha = 0.5)
     
     ax.set_xlabel("State", fontsize=FONT_SIZE_LABEL)
     ax.set_xticks([0, len(v_td)-2])
