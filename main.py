@@ -10,9 +10,9 @@ np.random.seed(18)
 RUN_DEMO = True
 RUN_COMPARE_ARCHITECTURES = True
 RUN_GURU = True
-RUN_KIM = False
+RUN_KIM = True
 RUN_KRAUSZ = True
-RUN_MIKHAEL = False
+RUN_MIKHAEL = True
 
 if RUN_DEMO:
     exp.dual_process_demo()
