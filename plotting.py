@@ -52,9 +52,9 @@ def preprocess_rpes(rpes, censor_final=True, scale_negative=True):
 def plot_demo_v(v_td, v_mb, save_fig=True, filename="figs/demo_v.pdf"):
     """Plot learned value functions (V_TD, V_MB, V_NET) across states (Fig. 1D)."""
     fig, ax = plt.subplots(figsize=(3.5, 3))
-    ax.plot(v_td[0:-1], color='black', linewidth=2, label='TD')
-    ax.plot(v_mb[0:-1], color='red', linewidth=2, label='MB')
-    ax.plot(K*v_mb[0:-1] + (1-K)*v_td[0:-1], color='darkred', linewidth=LINEWIDTH, linestyle='--', label='NET')
+    ax.plot(v_td[0:-1], color='pink', linewidth=2, label='TD')
+    ax.plot(v_mb[0:-1], color='darkred', linewidth=2, label='MB')
+    ax.plot(K*v_mb[0:-1] + (1-K)*v_td[0:-1], color='red', linewidth=LINEWIDTH, linestyle='--', label='NET')
     ax.axvline(x=len(v_td)-2, color='black', linestyle=':', linewidth=1, alpha=1)
     
     ax.set_xlabel("State", fontsize=FONT_SIZE_LABEL)
@@ -115,7 +115,7 @@ def plot_compare_architectures(exp_data, save_fig=True, filename="figs/compare_a
     """Plot value error convergence for different agent architectures (Fig. 1C)."""
     fig, ax = plt.subplots(figsize=(3.5, 3))
 
-    cmap = plt.colormaps['viridis']
+    cmap = plt.colormaps['magma']
     colors = {
         'naive': cmap(0.2),
         'normative': cmap(0.5),
@@ -371,9 +371,9 @@ def plot_guru_v(v_td, v_mb, save_fig=True, filename="figs/demo_v.pdf"):
     """Plot learned value functions (V_TD, V_MB, V_NET) for Guru experiment (Fig. 2C)."""
     fig, ax = plt.subplots(figsize=(3, 3))
     
-    ax.plot(v_td[0:-1], color='darkred', linewidth=LINEWIDTH, label='V$_{TD}$')
-    ax.plot(v_mb[0:-1], color='pink', linewidth=LINEWIDTH, label='V$_{MB}$')
-    ax.plot(K*v_mb[0:-1] + (1-K)*v_td[0:-1], color='black', linewidth=LINEWIDTH, linestyle = '--', label='V$_{NET}$')
+    ax.plot(v_td[0:-1], color='pink', linewidth=LINEWIDTH, label='V$_{TD}$')
+    ax.plot(v_mb[0:-1], color='darkred', linewidth=LINEWIDTH, label='V$_{MB}$')
+    ax.plot(K*v_mb[0:-1] + (1-K)*v_td[0:-1], color='red', linewidth=LINEWIDTH, linestyle = '--', label='V$_{NET}$')
     ax.axvline(x=len(v_td)-2, color='black', linestyle=':', linewidth=1, alpha = 0.5)
     
     ax.set_xlabel("State", fontsize=FONT_SIZE_LABEL)
